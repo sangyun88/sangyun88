@@ -1,14 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
 
-    <title>WEB1 - html</title>
-    <meta charset="utf-8"
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lee Sangyun — Product Designer Portfolio</title>
 
-    <h1><a href="index.html"WEB</h1>
-    <ol>
-      <li><a href="1.html"html</li>
-      <li><a href="2.html"CSS</li>
-      <li><a href="3.html"JavaScript</li>
-    </ol>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-    <h2>CSS</h2>
-    <p><a href="https://teletype.atom.io/"target="_black" title="atom.com">Hypertext Markup <strong>Language(HTML)</strong></a> is the standard markup language for creating web pages and web applications. Web browsers receive HTML documents from a web server or from local storage and render them into multimedia web pages.</p>
-    <img src="cording.jpeg" width="100%">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+    <!-- Iconify -->
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Pretendard', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #FFFFFF;
+            color: #111111;
+            font-family: 'Inter', 'Pretendard', ui-sans-serif, system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .animate-header {
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .animate-header.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .project-card {
+            transition: transform 0.3s ease-out;
+        }
+
+        .project-card:hover {
+            transform: translateY(-4px);
+        }
+    </style>
+</head>
+
+<body>
+    <div
+        class="min-h-screen bg-white text-[#111111] px-6 md:px-12 lg:px-16 py-10 max-w-[1920px] mx-auto overflow-hidden">
+
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-32 md:mb-48 animate-header">
+            <div class="font-medium text-base tracking-tight">Lee Sangyun</div>
+            <nav class="flex gap-8 text-sm font-medium">
+                <a href="#about" class="hover:text-blue-600 transition-colors">About</a>
+                <a href="#work" class="hover:text-blue-600 transition-colors">Work</a>
+                <a href="mailto:sangyun88@gmail.com" class="hover:text-blue-600 transition-colors">Contact</a>
+            </nav>
+        </header>
+
+        <!-- Hero -->
+        <section id="about" class="mb-32 md:mb-48 animate-on-scroll">
+            <h1
+                class="text-5xl md:text-7xl lg:text-[6rem] font-semibold leading-[1.05] tracking-tight max-w-[1200px] mb-24 md:mb-32">
+                Meaningful experiences,<br>measurable impact.
+            </h1>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 text-sm font-medium max-w-3xl">
+                <div>
+                    <p class="text-[#6B7280] mb-1">Current: SK planet — Manager</p>
+                    <p>Role: Product Designer</p>
+                </div>
+                <div>
+                    <p class="text-[#111111] mb-1 flex items-center gap-1">
+                        Selected work
+                        <iconify-icon icon="lucide:arrow-up-right" width="16" height="16"></iconify-icon>
+                    </p>
+                    <p class="text-[#6B7280]">2018 — Present</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects -->
+        <main id="work" class="flex flex-col gap-12 md:gap-24">
+
+            <!-- Row 1: OK캐쉬백 + OLOCK -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8 animate-on-scroll">
+                <!-- OK캐쉬백 쇼핑 탭 -->
+                <div class="group cursor-pointer flex flex-col gap-3 md:col-span-3 project-card">
+                    <div class="w-full bg-[#F3F4F6] overflow-hidden aspect-[16/9]">
+                        <img src="https://picsum.photos/seed/okcashbag/1600/900?grayscale" alt="OK캐쉬백 쇼핑 탭"
+                            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            referrerpolicy="no-referrer" />
+                    </div>
+                    <div>
+                        <div class="flex items-baseline gap-2">
+                            <h3 class="text-sm font-medium text-[#111111]">OK캐쉬백 쇼핑 탭</h3>
+                            <span class="text-sm text-[#6B7280]">2026 —</span>
+                        </div>
+                        <p class="text-xs text-[#6B7280] mt-1">더 나은 선택을 발견하는 쇼핑경험</p>
+                    </div>
+                </div>
+                <!-- OLOCK 리브랜딩 -->
+                <div class="group cursor-pointer flex flex-col gap-3 md:col-span-1 project-card">
+                    <div class="w-full bg-[#F3F4F6] overflow-hidden aspect-[4/5]">
+                        <img src="https://picsum.photos/seed/olock/800/1000?grayscale" alt="OLOCK 리브랜딩"
+                            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            referrerpolicy="no-referrer" />
+                    </div>
+                    <div>
+                        <div class="flex items-baseline gap-2">
+                            <h3 class="text-sm font-medium text-[#111111]">OLOCK 리브랜딩</h3>
+                            <span class="text-sm text-[#6B7280]">2024 — 2025</span>
+                        </div>
+                        <p class="text-xs text-[#6B7280] mt-1">보다 의미있는 즐거움 미닝워크</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 2: Syrup + MATE -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8 animate-on-scroll">
+                <!-- Syrup 야금야금 -->
+                <div class="group cursor-pointer flex flex-col gap-3 md:col-span-1 project-card">
+                    <div class="w-full bg-[#F3F4F6] overflow-hidden aspect-[4/5]">
+                        <img src="syrup.png" alt="Syrup 야금야금"
+                            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            referrerpolicy="no-referrer" />
+                    </div>
+                    <div>
+                        <div class="flex items-baseline gap-2">
+                            <h3 class="text-sm font-medium text-[#111111]">Syrup 야금야금</h3>
+                            <span class="text-sm text-[#6B7280]">2021 — 2022</span>
+                        </div>
+                        <p class="text-xs text-[#6B7280] mt-1">적립한 포인트로 야금야금 소액투자</p>
+                    </div>
+                </div>
+                <!-- MATE -->
+                <div class="group cursor-pointer flex flex-col gap-3 md:col-span-3 project-card">
+                    <div class="w-full bg-[#F3F4F6] overflow-hidden aspect-[16/9]">
+                        <img src="https://picsum.photos/seed/mate88/1600/900?grayscale" alt="MATE"
+                            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            referrerpolicy="no-referrer" />
+                    </div>
+                    <div>
+                        <div class="flex items-baseline gap-2">
+                            <h3 class="text-sm font-medium text-[#111111]">MATE</h3>
+                            <span class="text-sm text-[#6B7280]">2018 — 2019</span>
+                        </div>
+                        <p class="text-xs text-[#6B7280] mt-1">진짜 친구들과의 소통공간</p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Footer -->
+        <footer
+            class="mt-32 md:mt-48 pt-8 flex flex-col md:flex-row justify-between items-start md:items-center text-sm font-medium text-[#6B7280] gap-8 animate-on-scroll">
+            <div class="text-[#111111]">Lee Sangyun &copy; 2026</div>
+            <div class="flex gap-8">
+                <a href="mailto:sangyun88@gmail.com" class="hover:text-[#111111] transition-colors">Email</a>
+                <a href="https://linkedin.com/in/sangyun88" target="_blank"
+                    class="hover:text-[#111111] transition-colors">LinkedIn</a>
+            </div>
+            <div class="flex items-center gap-2 text-[#111111]">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                <span id="live-time"></span>
+            </div>
+        </footer>
+
+    </div>
+
+    <script>
+            (function () {
+                var timeEl = document.getElementById('live-time');
+                function updateTime() {
+                    var now = new Date();
+                    timeEl.textContent = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+                }
+                updateTime();
+                setInterval(updateTime, 1000);
+            })();
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, {
+                threshold: 0.1,
+                rootMargin: '-50px 0px'
+            });
+
+            document.querySelectorAll('.animate-on-scroll, .animate-header').forEach(function (el) {
+                observer.observe(el);
+            });
+        });
+    </script>
+</body>
+
+</html>
