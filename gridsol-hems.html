@@ -4,22 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gridsol MG — Lee Sangyun</title>
+    <title>Gridsol HEMS — Lee Sangyun</title>
 
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" as="style" crossorigin
         href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 
-    <!-- Iconify -->
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 
-    <!-- Tailwind Configuration -->
     <script>
         tailwind.config = {
             theme: {
@@ -40,17 +36,6 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        .animate-on-scroll {
-            opacity: 0;
-            transform: translateY(40px);
-            transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-
-        .animate-on-scroll.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
         .animate-header {
             opacity: 0;
             transform: translateY(-20px);
@@ -58,6 +43,17 @@
         }
 
         .animate-header.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .animate-on-scroll.visible {
             opacity: 1;
             transform: translateY(0);
         }
@@ -81,15 +77,15 @@
 
         <!-- Slides: 연속 스크롤 -->
         <main class="flex flex-col">
-            <img src="Gridsol/images/slide-1.png" class="w-full h-auto block" loading="eager" />
-            <img src="Gridsol/images/slide-2.png" class="w-full h-auto block" loading="lazy" />
+            <img src="GridsolHEMS/images/slide-1.png" class="w-full h-auto block" loading="eager" />
+            <img src="GridsolHEMS/images/slide-2.png" class="w-full h-auto block" loading="lazy" />
         </main>
 
         <!-- Next Project -->
         <section class="mt-32 md:mt-48 pt-12 border-t border-[#E5E7EB] animate-on-scroll">
             <p class="text-xs font-medium text-[#6B7280] uppercase tracking-widest mb-6">Next Project</p>
-            <a href="gridsol-hems.html" class="group flex items-center gap-3 hover:gap-4 transition-all duration-300">
-                <span class="text-2xl md:text-4xl font-semibold tracking-tight group-hover:text-blue-600 transition-colors">Gridsol HEMS</span>
+            <a href="index.html#work" class="group flex items-center gap-3 hover:gap-4 transition-all duration-300">
+                <span class="text-2xl md:text-4xl font-semibold tracking-tight group-hover:text-blue-600 transition-colors">All Work</span>
                 <iconify-icon icon="lucide:arrow-right" width="24" height="24" class="text-[#6B7280] group-hover:text-blue-600 transition-colors"></iconify-icon>
             </a>
         </section>
@@ -134,8 +130,8 @@
                     }
                 });
             }, {
-                threshold: 0.1,
-                rootMargin: '-50px 0px'
+                threshold: 0.05,
+                rootMargin: '0px'
             });
 
             document.querySelectorAll('.animate-on-scroll').forEach(function (el) {
