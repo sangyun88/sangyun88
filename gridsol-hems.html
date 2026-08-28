@@ -6,138 +6,283 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gridsol HEMS — Lee Sangyun</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" as="style" crossorigin
         href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 
-    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'Pretendard', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
+    <script>document.documentElement.classList.add('js');</script>
 
     <style>
+        :root {
+            --bg: #f5f4f3;
+            --ink: #111111;
+            --muted: #6b7280;
+            --ease: cubic-bezier(0.42, 0, 0.58, 1);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        html,
         body {
-            background-color: #FFFFFF;
-            color: #111111;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--ink);
             font-family: 'Inter', 'Pretendard', ui-sans-serif, system-ui, sans-serif;
             -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        .animate-header {
+        .page {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow-x: hidden;
+        }
+
+        /* ---------- Bars ---------- */
+
+        .bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+            flex: none;
+            padding: 1.75rem 2rem;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+            color: var(--muted);
+        }
+
+        /* The intro only exists when scripting does, so the page is never
+           stranded at opacity 0 if the script fails to run. */
+        .js .page:not(.ready) header.bar {
             opacity: 0;
-            transform: translateY(-20px);
-            transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+            transform: translateY(-8px);
         }
 
-        .animate-header.visible {
-            opacity: 1;
-            transform: translateY(0);
+        .page.ready header.bar {
+            transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
         }
 
-        .animate-on-scroll {
-            opacity: 0;
-            transform: translateY(40px);
-            transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+        /* Nothing sits on the left any more, so keep the links on the right
+           instead of letting space-between pull them across. */
+        footer.bar {
+            justify-content: flex-end;
         }
 
-        .animate-on-scroll.visible {
-            opacity: 1;
-            transform: translateY(0);
+        .back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--ink);
+            text-decoration: none;
+            transition: opacity 0.2s var(--ease);
+        }
+
+        .back:hover,
+        .back:focus-visible {
+            opacity: 0.6;
+        }
+
+        .back .ico {
+            transition: transform 0.25s var(--ease);
+        }
+
+        .back:hover .ico {
+            transform: translateX(-3px);
+        }
+
+        .project .year {
+            color: var(--muted);
+        }
+
+        .project {
+            color: var(--ink);
+        }
+
+        .links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .links a {
+            color: var(--muted);
+            text-decoration: none;
+            transition: color 0.2s var(--ease);
+        }
+
+        .links a:hover,
+        .links a:focus-visible {
+            color: var(--ink);
+        }
+
+        .ico {
+            width: 14px;
+            height: 14px;
+            flex: none;
+        }
+
+        .ico-lg {
+            width: 22px;
+            height: 22px;
+        }
+
+        /* ---------- Slides ---------- */
+
+        .slides {
+            flex: 1 1 auto;
+            padding: 0 1.25rem;
+        }
+
+        /* One rounded surface around the whole run, so the slides stay
+           edge-to-edge with each other the way the case study was laid out. */
+        .slide-stack {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 80rem;
+            margin: 0 auto;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            background-color: #e7e5e4;
+        }
+
+        .slide-stack img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        /* ---------- Next project ---------- */
+
+        .next {
+            max-width: 80rem;
+            width: 100%;
+            margin: 0 auto;
+            padding: 6rem 1.25rem 4rem;
+        }
+
+        .next-label {
+            margin: 0 0 1.25rem;
+            font-size: 0.6875rem;
+            font-weight: 500;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .next-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--ink);
+            text-decoration: none;
+            font-size: clamp(1.5rem, 4vw, 2.25rem);
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .next-link .ico-lg {
+            color: var(--muted);
+            transition: transform 0.25s var(--ease), color 0.25s var(--ease);
+        }
+
+        .next-link:hover .ico-lg,
+        .next-link:focus-visible .ico-lg {
+            transform: translateX(5px);
+            color: var(--ink);
+        }
+
+        @media (max-width: 767px) {
+            .bar {
+                font-size: 0.75rem;
+                padding: 1.25rem;
+            }
+
+            .links {
+                gap: 1rem;
+            }
+
+            .slides,
+            .next {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+            }
+
+            .next {
+                padding-top: 4rem;
+                padding-bottom: 2.5rem;
+            }
+
+            .slide-stack {
+                border-radius: 1rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .page.ready header.bar,
+            .back,
+            .back .ico,
+            .links a,
+            .next-link .ico-lg {
+                transition-duration: 0.01ms !important;
+            }
+
+            .back:hover .ico,
+            .next-link:hover .ico-lg {
+                transform: none;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="min-h-screen bg-white text-[#111111] px-6 md:px-12 lg:px-16 py-10 max-w-[1920px] mx-auto overflow-hidden">
+    <div class="page" id="page">
 
-        <!-- Header -->
-        <header class="flex justify-between items-center mb-10 md:mb-16 animate-header">
-            <a href="index.html" class="font-medium text-base tracking-tight hover:text-blue-600 transition-colors flex items-center gap-2">
-                <iconify-icon icon="lucide:arrow-left" width="16" height="16"></iconify-icon>
-                Lee Sangyun
-            </a>
-            <nav class="flex gap-8 text-sm font-medium">
-                <a href="index.html#about" class="hover:text-blue-600 transition-colors">About</a>
-                <a href="index.html#work" class="hover:text-blue-600 transition-colors">Work</a>
-            </nav>
+        <header class="bar">
+            <a class="back" href="index.html"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg> Lee Sangyun</a>
+            <span class="project">Gridsol HEMS <span class="year">2015 — 2016</span></span>
         </header>
 
-        <!-- Slides: 연속 스크롤 -->
-        <main class="flex flex-col">
-            <img src="GridsolHEMS/images/slide-1.png" class="w-full h-auto block" loading="eager" />
-            <img src="GridsolHEMS/images/slide-2.png" class="w-full h-auto block" loading="lazy" />
+        <main class="slides">
+            <div class="slide-stack">
+                <img src="GridsolHEMS/images/slide-1.png" alt="Gridsol HEMS 슬라이드 1" width="3840" height="3427" loading="eager" decoding="async">
+                <img src="GridsolHEMS/images/slide-2.png" alt="Gridsol HEMS 슬라이드 2" width="3840" height="3427" loading="lazy" decoding="async">
+            </div>
         </main>
 
-        <!-- Next Project -->
-        <section class="mt-32 md:mt-48 pt-12 border-t border-[#E5E7EB] animate-on-scroll">
-            <p class="text-xs font-medium text-[#6B7280] uppercase tracking-widest mb-6">Next Project</p>
-            <a href="index.html#work" class="group flex items-center gap-3 hover:gap-4 transition-all duration-300">
-                <span class="text-2xl md:text-4xl font-semibold tracking-tight group-hover:text-blue-600 transition-colors">All Work</span>
-                <iconify-icon icon="lucide:arrow-right" width="24" height="24" class="text-[#6B7280] group-hover:text-blue-600 transition-colors"></iconify-icon>
+        <section class="next">
+            <p class="next-label">Next Project</p>
+            <a class="next-link" href="index.html">
+                <span>All Work</span>
+                <svg class="ico ico-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
             </a>
         </section>
-
-        <!-- Footer -->
-        <footer class="mt-32 md:mt-48 pt-8 flex flex-col md:flex-row justify-between items-start md:items-center text-sm font-medium text-[#6B7280] gap-8 animate-on-scroll">
-            <div class="text-[#111111]">Lee Sangyun &copy; 2026</div>
-            <div class="flex gap-8">
-                <a href="mailto:sangyun88@gmail.com" class="hover:text-[#111111] transition-colors">Email</a>
-                <a href="https://linkedin.com/in/sangyun88" target="_blank" class="hover:text-[#111111] transition-colors">LinkedIn</a>
-            </div>
-            <div class="flex items-center gap-2 text-[#111111]">
-                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                <span id="live-time"></span>
-            </div>
-        </footer>
 
     </div>
 
     <script>
         (function () {
-            var timeEl = document.getElementById('live-time');
-            function updateTime() {
-                var now = new Date();
-                timeEl.textContent = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-            }
-            updateTime();
-            setInterval(updateTime, 1000);
+            var page = document.getElementById('page');
+            // Synchronous flush rather than requestAnimationFrame, which does not
+            // fire in a background tab.
+            void page.offsetHeight;
+            page.classList.add('ready');
         })();
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('.animate-header').forEach(function (el) {
-                el.classList.add('visible');
-            });
-
-            var observer = new IntersectionObserver(function (entries) {
-                entries.forEach(function (entry) {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                    }
-                });
-            }, {
-                threshold: 0.05,
-                rootMargin: '0px'
-            });
-
-            document.querySelectorAll('.animate-on-scroll').forEach(function (el) {
-                observer.observe(el);
-            });
-        });
     </script>
 </body>
 

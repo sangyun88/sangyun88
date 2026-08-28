@@ -5,9 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lee Sangyun — Product Designer Portfolio</title>
-
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="description" content="Lee Sangyun — Product Designer. Selected work, 2015 — Present.">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,252 +14,525 @@
     <link rel="stylesheet" as="style" crossorigin
         href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 
-    <!-- Iconify -->
-    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <!--
+      Hover-expand gallery adapted from:
+      Skiper 52 — HoverExpand_001 (React + Framer Motion)
+      Author: @gurvinder-singh02 · https://gxuri.me · https://x.com/Gur__vi
 
-    <!-- Tailwind Configuration -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'Pretendard', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
+      License & Usage:
+      - Free to use and modify in both personal and commercial projects.
+      - Attribution to Skiper UI is required when using the free version.
+      - No attribution required with Skiper UI Pro.
+
+      Ported to vanilla HTML/CSS/JS (CSS transitions in place of Framer Motion).
+    -->
+
+    <script>document.documentElement.classList.add('js');</script>
 
     <style>
+        :root {
+            --bg: #f5f4f3;
+            --ink: #111111;
+            --muted: #6b7280;
+            --ease: cubic-bezier(0.42, 0, 0.58, 1);
+            --dur: 0.3s;
+            --gap: 0.25rem;
+
+            --w-init: 2.5rem;
+            --h-init: 15rem;
+            --w-idle: 5rem;
+            --h-idle: 19rem;
+            --w-active: 24rem;
+            --h-active: 24rem;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        html,
         body {
-            background-color: #FFFFFF;
-            color: #111111;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--ink);
             font-family: 'Inter', 'Pretendard', ui-sans-serif, system-ui, sans-serif;
             -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        .animate-on-scroll {
+        .stage {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow-x: hidden;
+        }
+
+        /* ---------- Bars ---------- */
+
+        .bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+            flex: none;
+            padding: 1.75rem 2rem;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+            color: var(--muted);
+        }
+
+        /* The intro only exists when scripting does. Without it the page is
+           already in its resting state rather than stuck at opacity 0. */
+        .js .stage:not(.ready) header.bar {
             opacity: 0;
-            transform: translateY(40px);
-            transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+            transform: translateY(-8px);
         }
 
-        .animate-on-scroll.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .animate-header {
+        .js .stage:not(.ready) footer.bar {
             opacity: 0;
-            transform: translateY(-20px);
-            transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+            transform: translateY(8px);
         }
 
-        .animate-header.visible {
+        /* Nothing sits on the left any more, so keep the links on the right
+           instead of letting space-between pull them across. */
+        footer.bar {
+            justify-content: flex-end;
+        }
+
+        .stage.ready .bar {
+            transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
+        }
+
+        header.bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1;
+        }
+
+        .bar strong {
+            color: var(--ink);
+            font-weight: 500;
+        }
+
+        .links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .credit {
+            color: var(--muted);
+            opacity: 0.7;
+        }
+
+        .links a {
+            color: var(--muted);
+            text-decoration: none;
+            transition: color 0.2s var(--ease);
+        }
+
+        .links a:hover,
+        .links a:focus-visible {
+            color: var(--ink);
+        }
+
+        /* ---------- Gallery ---------- */
+
+        .gallery-wrap {
+            flex: 1 1 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5rem 1.25rem;
+        }
+
+        .gallery {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--gap);
+            width: 100%;
+            max-width: 72rem;
+        }
+
+        .js .stage:not(.ready) .gallery {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .stage.ready .gallery {
+            transition: opacity var(--dur) var(--ease) 0.5s, transform var(--dur) var(--ease) 0.5s;
+        }
+
+        .card {
+            position: relative;
+            display: block;
+            flex: none;
+            width: var(--w-idle);
+            height: var(--h-idle);
+            border-radius: 1.5rem;
+            overflow: hidden;
+            background-color: #e7e5e4;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .card.is-active {
+            width: var(--w-active);
+            height: var(--h-active);
+        }
+
+        .js .stage:not(.ready) .card,
+        .js .stage:not(.ready) .card.is-active {
+            width: var(--w-init);
+            height: var(--h-init);
+        }
+
+        .stage.ready .card {
+            transition: width var(--dur) var(--ease), height var(--dur) var(--ease);
+        }
+
+        .card:focus-visible {
+            outline: 2px solid var(--ink);
+            outline-offset: 3px;
+        }
+
+        .card img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            transition: transform 0.6s var(--ease);
+        }
+
+        .card.is-active:hover img {
+            transform: scale(1.04);
+        }
+
+        .scrim {
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(to top,
+                    rgba(0, 0, 0, 0.80) 0%,
+                    rgba(0, 0, 0, 0.55) 18%,
+                    rgba(0, 0, 0, 0.18) 42%,
+                    rgba(0, 0, 0, 0) 68%);
+            opacity: 0;
+            transition: opacity var(--dur) var(--ease);
+            pointer-events: none;
+        }
+
+        .card.is-active .scrim {
             opacity: 1;
-            transform: translateY(0);
         }
 
-        .project-card {
-            transition: transform 0.3s ease-out;
+        .meta {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: var(--w-active);
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1.25rem;
+            opacity: 0;
+            transition: opacity var(--dur) var(--ease);
+            pointer-events: none;
         }
 
-        .project-card:hover {
-            transform: translateY(-4px);
+        .card.is-active .meta {
+            opacity: 1;
+        }
+
+        .meta h2 {
+            margin: 0;
+            font-size: 0.875rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: #ffffff;
+            white-space: nowrap;
+        }
+
+        .meta p {
+            margin: 0.25rem 0 0;
+            font-size: 0.75rem;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.78);
+            white-space: nowrap;
+        }
+
+        .meta .year {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.7);
+            white-space: nowrap;
+        }
+
+        /* ---------- Tablet ---------- */
+
+        @media (max-width: 1023px) {
+            :root {
+                --w-init: 1.75rem;
+                --h-init: 11rem;
+                --w-idle: 3.5rem;
+                --h-idle: 14.5rem;
+                --w-active: 18rem;
+                --h-active: 18rem;
+            }
+
+            .bar {
+                padding: 1.5rem;
+            }
+
+            .meta {
+                padding: 1rem;
+            }
+        }
+
+        /* ---------- Mobile: vertical accordion ---------- */
+
+        @media (max-width: 767px) {
+            :root {
+                --w-init: 100%;
+                --h-init: 3rem;
+                --w-idle: 100%;
+                --h-idle: 4rem;
+                --w-active: 100%;
+                --h-active: 20rem;
+            }
+
+            .gallery {
+                flex-direction: column;
+                max-width: 26rem;
+            }
+
+            .bar {
+                font-size: 0.75rem;
+                padding: 1.25rem;
+            }
+
+            .gallery-wrap {
+                padding: 4rem 0.75rem;
+            }
+
+            .links {
+                gap: 1rem;
+            }
+
+            .credit-label {
+                display: none;
+            }
+
+            /* Collapsed rows still need to say which project they are. */
+            .card:not(.is-active) .scrim {
+                opacity: 1;
+                background-image: linear-gradient(to right,
+                        rgba(0, 0, 0, 0.75) 0%,
+                        rgba(0, 0, 0, 0.45) 45%,
+                        rgba(0, 0, 0, 0) 85%);
+            }
+
+            .card:not(.is-active) .meta {
+                top: 0;
+                opacity: 1;
+                align-items: center;
+                padding: 0 1.125rem;
+            }
+
+            .card:not(.is-active) .meta p,
+            .card:not(.is-active) .meta .year {
+                display: none;
+            }
+        }
+
+        /* Short viewports (landscape phones, small laptop windows) */
+        @media (min-width: 768px) and (max-height: 620px) {
+            :root {
+                --w-init: 1.5rem;
+                --h-init: 10rem;
+                --w-idle: 3rem;
+                --h-idle: 13rem;
+                --w-active: 16rem;
+                --h-active: 16rem;
+            }
+
+            .bar {
+                padding: 1rem 1.5rem;
+            }
+        }
+
+        @media (min-width: 768px) and (max-height: 460px) {
+            :root {
+                --w-init: 1.25rem;
+                --h-init: 7.5rem;
+                --w-idle: 2.5rem;
+                --h-idle: 9.5rem;
+                --w-active: 12rem;
+                --h-active: 12rem;
+            }
+
+            .bar {
+                padding: 0.75rem 1.25rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .stage.ready .bar,
+            .stage.ready .gallery,
+            .stage.ready .card,
+            .card img,
+            .scrim,
+            .meta {
+                transition-duration: 0.01ms !important;
+                transition-delay: 0ms !important;
+            }
+
+            .card.is-active:hover img {
+                transform: none;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div
-        class="min-h-screen bg-white text-[#111111] px-6 md:px-12 lg:px-16 py-10 max-w-[1920px] mx-auto overflow-hidden">
+    <div class="stage" id="stage">
 
-        <!-- Header -->
-        <header class="flex justify-between items-center mb-32 md:mb-48 animate-header">
-            <div class="font-medium text-base tracking-tight">Lee Sangyun</div>
-            <nav class="flex gap-8 text-sm font-medium">
-                <a href="#about" class="hover:text-blue-600 transition-colors">About</a>
-                <a href="#work" class="hover:text-blue-600 transition-colors">Work</a>
-            </nav>
+        <header class="bar">
+            <strong>Lee Sangyun</strong>
+            <span>Product Designer</span>
         </header>
 
-        <!-- Hero -->
-        <section id="about" class="mb-32 md:mb-48 animate-on-scroll">
-            <h1
-                class="text-5xl md:text-7xl lg:text-[6rem] font-semibold leading-[1.05] tracking-tight max-w-[1200px] mb-24 md:mb-32">
-                Meaningful experiences,<br>measurable impact.
-            </h1>
+        <div class="gallery-wrap">
+            <div class="gallery" id="gallery">
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 text-sm font-medium max-w-3xl">
-                <div>
-                    <p class="text-[#6B7280] mb-1">Current: SK planet — Manager</p>
-                    <p>Role: Product Designer</p>
-                </div>
-                <div>
-                    <p class="text-[#111111] mb-1 flex items-center gap-1">
-                        Selected work
-                        <iconify-icon icon="lucide:arrow-up-right" width="16" height="16"></iconify-icon>
-                    </p>
-                    <p class="text-[#6B7280]">2018 — Present</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Projects -->
-        <main id="work" class="flex flex-col gap-12 md:gap-24">
-
-            <!-- Row 1: OK캐쉬백 + OLOCK -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8 animate-on-scroll">
-                <!-- OK캐쉬백 쇼핑 탭 -->
-                <a href="ocb.html" class="group cursor-pointer flex flex-col gap-3 md:col-span-3 project-card" style="text-decoration:none;color:inherit;">
-                    <div class="w-full bg-[#F3F4F6] overflow-hidden aspect-[16/9]">
-                        <img src="OCB쇼핑5.png" alt="OK캐쉬백 쇼핑 탭"
-                            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                            referrerpolicy="no-referrer" />
-                    </div>
-                    <div>
-                        <div class="flex items-baseline gap-2">
-                            <h3 class="text-sm font-medium text-[#111111]">OK캐쉬백 쇼핑 탭</h3>
-                            <span class="text-sm text-[#6B7280]">2026 —</span>
+                <a class="card is-active" href="ocb.html">
+                    <img src="thumbs/ocb.webp" width="1208" height="800" alt="OK캐쉬백 쇼핑 탭" decoding="async" fetchpriority="high">
+                    <div class="scrim"></div>
+                    <div class="meta">
+                        <div>
+                            <h2>OK캐쉬백 쇼핑 탭</h2>
+                            <p>더 나은 선택을 발견하는 쇼핑경험</p>
                         </div>
-                        <p class="text-xs text-[#6B7280] mt-1">더 나은 선택을 발견하는 쇼핑경험</p>
+                        <span class="year">2026 —</span>
                     </div>
                 </a>
-                <!-- OLOCK 리브랜딩 -->
-                <a href="olock.html" class="group cursor-pointer flex flex-col gap-3 md:col-span-1 project-card" style="text-decoration:none;color:inherit;">
-                    <div class="w-full bg-[#F3F4F6] overflow-hidden aspect-[4/5]">
-                        <img src="OLOCK5.png" alt="OLOCK 리브랜딩"
-                            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                            referrerpolicy="no-referrer" />
-                    </div>
-                    <div>
-                        <div class="flex items-baseline gap-2">
-                            <h3 class="text-sm font-medium text-[#111111]">OLOCK 리브랜딩</h3>
-                            <span class="text-sm text-[#6B7280]">2024 — 2025</span>
-                        </div>
-                        <p class="text-xs text-[#6B7280] mt-1">보다 의미있는 즐거움 미닝워크</p>
-                    </div>
-                </a>
-            </div>
 
-            <!-- Row 2: Syrup + MATE -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8 animate-on-scroll">
-                <!-- Syrup 야금야금 -->
-                <a href="syrup.html" class="group cursor-pointer flex flex-col gap-3 md:col-span-1 project-card" style="text-decoration:none;color:inherit;">
-                    <div class="w-full bg-[#F3F4F6] overflow-hidden aspect-[4/5]">
-                        <img src="syrup.png" alt="Syrup 야금야금"
-                            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                            referrerpolicy="no-referrer" />
-                    </div>
-                    <div>
-                        <div class="flex items-baseline gap-2">
-                            <h3 class="text-sm font-medium text-[#111111]">Syrup 야금야금</h3>
-                            <span class="text-sm text-[#6B7280]">2021 — 2022</span>
+                <a class="card" href="olock.html">
+                    <img src="thumbs/olock.webp" width="720" height="1040" alt="OLOCK 리브랜딩" decoding="async" referrerpolicy="no-referrer">
+                    <div class="scrim"></div>
+                    <div class="meta">
+                        <div>
+                            <h2>OLOCK 리브랜딩</h2>
+                            <p>보다 의미있는 즐거움 미닝워크</p>
                         </div>
-                        <p class="text-xs text-[#6B7280] mt-1">적립한 포인트로 야금야금 소액투자</p>
+                        <span class="year">2024 — 2025</span>
                     </div>
                 </a>
-                <!-- MATE -->
-                <a href="mate.html" class="group cursor-pointer flex flex-col gap-3 md:col-span-3 project-card" style="text-decoration:none;color:inherit;">
-                    <div class="w-full bg-[#F3F4F6] overflow-hidden aspect-[16/9]">
-                        <img src="MATE_image.png" alt="MATE"
-                            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                    </div>
-                    <div>
-                        <div class="flex items-baseline gap-2">
-                            <h3 class="text-sm font-medium text-[#111111]">MATE</h3>
-                            <span class="text-sm text-[#6B7280]">2018 — 2019</span>
-                        </div>
-                        <p class="text-xs text-[#6B7280] mt-1">진짜 친구들과의 소통공간</p>
-                    </div>
-                </a>
-            </div>
 
-            <!-- Row 3: 프로젝트 5 + 프로젝트 6 -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8 animate-on-scroll">
-                <!-- 프로젝트 5 -->
-                <a href="gridsol.html" class="group cursor-pointer flex flex-col gap-3 md:col-span-3 project-card" style="text-decoration:none;color:inherit;">
-                    <div class="w-full bg-[#F3F4F6] overflow-hidden aspect-[16/9]">
-                        <img src="MG_thumbnail.png" alt="Gridsol MG"
-                            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                    </div>
-                    <div>
-                        <div class="flex items-baseline gap-2">
-                            <h3 class="text-sm font-medium text-[#111111]">Gridsol MG</h3>
-                            <span class="text-sm text-[#6B7280]">2016 — 2017</span>
+                <a class="card" href="syrup.html">
+                    <img src="thumbs/syrup.webp" width="800" height="932" alt="Syrup 야금야금" decoding="async" referrerpolicy="no-referrer">
+                    <div class="scrim"></div>
+                    <div class="meta">
+                        <div>
+                            <h2>Syrup 야금야금</h2>
+                            <p>적립한 포인트로 야금야금 소액투자</p>
                         </div>
-                        <p class="text-xs text-[#6B7280] mt-1">서울대학교 캠퍼스 Micro-Grid</p>
+                        <span class="year">2021 — 2022</span>
                     </div>
                 </a>
-                <!-- Gridsol HEMS -->
-                <a href="gridsol-hems.html" class="group cursor-pointer flex flex-col gap-3 md:col-span-1 project-card" style="text-decoration:none;color:inherit;">
-                    <div class="w-full bg-[#F3F4F6] overflow-hidden aspect-[4/5]">
-                        <img src="Gridsol HEMS_thumbnail.png" alt="Gridsol HEMS"
-                            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                    </div>
-                    <div>
-                        <div class="flex items-baseline gap-2">
-                            <h3 class="text-sm font-medium text-[#111111]">Gridsol HEMS</h3>
-                            <span class="text-sm text-[#6B7280]">2015 — 2016</span>
+
+                <a class="card" href="mate.html">
+                    <img src="thumbs/mate.webp" width="1226" height="747" alt="MATE" decoding="async">
+                    <div class="scrim"></div>
+                    <div class="meta">
+                        <div>
+                            <h2>MATE</h2>
+                            <p>진짜 친구들과의 소통공간</p>
                         </div>
-                        <p class="text-xs text-[#6B7280] mt-1">태양광 모니터링 시스템</p>
+                        <span class="year">2018 — 2019</span>
                     </div>
                 </a>
-            </div>
 
-        </main>
+                <a class="card" href="gridsol.html">
+                    <img src="thumbs/gridsol-mg.webp" width="1067" height="800" alt="Gridsol MG" decoding="async">
+                    <div class="scrim"></div>
+                    <div class="meta">
+                        <div>
+                            <h2>Gridsol MG</h2>
+                            <p>서울대학교 캠퍼스 Micro-Grid</p>
+                        </div>
+                        <span class="year">2016 — 2017</span>
+                    </div>
+                </a>
 
-        <!-- Footer -->
-        <footer
-            class="mt-32 md:mt-48 pt-8 flex flex-col md:flex-row justify-between items-start md:items-center text-sm font-medium text-[#6B7280] gap-8 animate-on-scroll">
-            <div class="text-[#111111]">Lee Sangyun &copy; 2026</div>
-            <div class="flex gap-8">
-                <a href="mailto:sangyun88@gmail.com" class="hover:text-[#111111] transition-colors">Email</a>
-                <a href="https://linkedin.com/in/sangyun88" target="_blank"
-                    class="hover:text-[#111111] transition-colors">LinkedIn</a>
+                <a class="card" href="gridsol-hems.html">
+                    <img src="thumbs/gridsol-hems.webp" width="801" height="800" alt="Gridsol HEMS" decoding="async">
+                    <div class="scrim"></div>
+                    <div class="meta">
+                        <div>
+                            <h2>Gridsol HEMS</h2>
+                            <p>태양광 모니터링 시스템</p>
+                        </div>
+                        <span class="year">2015 — 2016</span>
+                    </div>
+                </a>
+
             </div>
-            <div class="flex items-center gap-2 text-[#111111]">
-                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                <span id="live-time"></span>
-            </div>
-        </footer>
+        </div>
 
     </div>
 
     <script>
-            (function () {
-                var timeEl = document.getElementById('live-time');
-                function updateTime() {
-                    var now = new Date();
-                    timeEl.textContent = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+        (function () {
+            var stage = document.getElementById('stage');
+            var cards = Array.prototype.slice.call(document.querySelectorAll('.card'));
+            var active = 0;
+
+            function setActive(index) {
+                if (index === active) return;
+                active = index;
+                for (var i = 0; i < cards.length; i++) {
+                    cards[i].classList.toggle('is-active', i === active);
                 }
-                updateTime();
-                setInterval(updateTime, 1000);
-            })();
-    </script>
+            }
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // 헤더는 즉시 표시
-            document.querySelectorAll('.animate-header').forEach(function (el) {
-                el.classList.add('visible');
-            });
-
-            var observer = new IntersectionObserver(function (entries) {
-                entries.forEach(function (entry) {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
+            cards.forEach(function (card, index) {
+                // Hover expands on mouse only — touch taps fall through to the click handler.
+                card.addEventListener('pointerenter', function (e) {
+                    if (e.pointerType === 'mouse') setActive(index);
+                });
+                card.addEventListener('focus', function () {
+                    setActive(index);
+                });
+                // First tap on a collapsed card expands it; a second tap follows the link.
+                card.addEventListener('click', function (e) {
+                    if (active !== index) {
+                        e.preventDefault();
+                        setActive(index);
                     }
                 });
-            }, {
-                threshold: 0.1,
-                rootMargin: '-50px 0px'
             });
 
-            document.querySelectorAll('.animate-on-scroll').forEach(function (el) {
-                observer.observe(el);
-            });
-        });
+            // Flush the initial styles so the transition has a state to animate from.
+            // Done synchronously rather than via requestAnimationFrame, which never
+            // fires in a background tab and would leave the page stuck at opacity 0.
+            void stage.offsetHeight;
+            stage.classList.add('ready');
+        })();
     </script>
 </body>
 
