@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>면접 시뮬레이션 오디오</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --bg:#f6f5f2; --surface:#fff; --text:#1d1d1f; --muted:#6e6e73; --line:#e6e4df;
+  --her:#c2410c; --her-bg:#fff4ed; --me:#1d4ed8; --me-bg:#eef3ff; --accent:#1d1d1f;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#121212; --surface:#1c1c1e; --text:#f2f2f2; --muted:#9a9aa0; --line:#2c2c2e;
+    --her:#fb923c; --her-bg:#2a1d14; --me:#7aa2ff; --me-bg:#161f33; --accent:#f2f2f2; }
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);
+  font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:720px;margin:0 auto;padding:24px 16px 200px}
+header h1{font-size:22px;margin:8px 0 4px;letter-spacing:-.02em}
+header p{margin:0;color:var(--muted);font-size:14px}
+.legend{display:flex;gap:14px;margin:14px 0 8px;font-size:13px;color:var(--muted)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.q{margin:28px 0 0}
+.q h2{font-size:13px;font-weight:600;color:var(--muted);margin:0 0 10px;cursor:pointer;display:flex;gap:8px;align-items:center}
+.q h2 .n{font-variant-numeric:tabular-nums;color:var(--text)}
+.turn{border-radius:14px;padding:12px 14px;margin:8px 0;line-height:1.7;font-size:16px;cursor:pointer;
+  border:1px solid transparent;transition:background .2s,border-color .2s;white-space:pre-line}
+.turn .who{display:block;font-size:12px;font-weight:700;margin-bottom:2px}
+.turn.interviewer .who{color:var(--her)}
+.turn.me .who{color:var(--me)}
+.turn.interviewer{margin-right:12%}
+.turn.me{margin-left:6%}
+.turn.active.interviewer{background:var(--her-bg);border-color:var(--her)}
+.turn.active.me{background:var(--me-bg);border-color:var(--me)}
+.turn:not(.active){opacity:.72}
+.player{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--surface) 92%,transparent);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);
+  padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
+.player .in{max-width:720px;margin:0 auto}
+.now{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:8px}
+.now b{color:var(--text)}
+.bar{height:4px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:10px;cursor:pointer}
+.bar i{display:block;height:100%;width:0;background:var(--accent)}
+.ctrls{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.btns{display:flex;align-items:center;gap:6px}
+button{font:inherit;color:var(--text);background:none;border:0;cursor:pointer;border-radius:999px;padding:8px}
+button:hover{background:var(--line)}
+.play{width:52px;height:52px;background:var(--accent);color:var(--bg);display:grid;place-items:center}
+.play:hover{background:var(--accent);opacity:.9}
+.opts{display:flex;gap:6px;align-items:center;font-size:13px}
+.chip{border:1px solid var(--line);padding:6px 10px;font-size:13px}
+.chip.on{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+svg{display:block}
+.hint{font-size:12px;color:var(--muted);margin-top:6px;min-height:1em}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p>🎧 듣기용 답변</p>
+    <h1>카카오뱅크 신사업기획 면접 시뮬레이션</h1>
+    <p>질문 23개 · 문장을 누르면 거기서부터 재생돼요</p>
+    <div class="legend"><span><i class="dot" style="background:var(--her)"></i>면접관</span><span><i class="dot" style="background:var(--me)"></i>나</span></div>
+  </header>
+  <main id="list"></main>
+</div>
+
+<div class="player"><div class="in">
+  <div class="now" id="now">재생을 눌러 시작하세요</div>
+  <div class="bar" id="bar"><i id="prog"></i></div>
+  <div class="ctrls">
+    <div class="btns">
+      <button id="prevQ" aria-label="이전 질문"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg></button>
+      <button class="play" id="play" aria-label="재생"><svg id="icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+      <button id="nextQ" aria-label="다음 질문"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+    </div>
+    <div class="opts">
+      <button class="chip" id="speed">1.0×</button>
+      <button class="chip" id="practice" title="면접관 질문 뒤에 멈춰서 직접 답해볼 수 있어요">연습 모드</button>
+    </div>
+  </div>
+  <div class="hint" id="hint"></div>
+</div></div>
+
+<audio id="au" preload="auto"></audio>
+<script>
+const DATA = [{"no": 1, "title": "본인 소개", "turns": [{"speaker": "interviewer", "text": "간단히 본인 소개 부탁드립니다.", "audio": "audio/q01_00_interviewer.mp3"}, {"speaker": "me", "text": "안녕하세요. 이상윤입니다.\n현재 SK플래닛에서 UX 기획 업무를 맡고 있습니다. 저는 다양한 서비스를 경험해봤는데 전력 솔루션부터 시럽 앱테크의 금 투자 서비스, 오락 만보기 앱테크, OK캐쉬백 쇼핑인 커머스 서비스까지 만들고 있습니다. 이처럼 도메인이 바뀔 때마다 그 시장을 처음부터 스터디해서 제 것으로 만드는 방식으로 일을 해왔습니다.\n카카오뱅크 신사업 기획 채용공고에서 특정 도메인보다 새로운 분야를 깊게 파고드는 호기심을 보신다는 문장을 읽고 지원하게 되었습니다. 또한 사용자 중심을 항상 고려하는 카카오뱅크와, UX 베이스로 사용자를 고려하여 실무해온 제 경험이 잘 맞을 것 같았습니다. 그리고 신사업 기획팀이 다루는 영역 중 금 투자는 제가 직접 설계해본 경험이 있어서 더욱 관심이 갔습니다.", "audio": "audio/q01_01_me.mp3"}]}, {"no": 2, "title": "재지원", "turns": [{"speaker": "interviewer", "text": "작년에도 저희 팀에 지원하셨던데요.", "audio": "audio/q02_00_interviewer.mp3"}, {"speaker": "me", "text": "사실 작년에도 이 팀에 지원했다가 실무면접에서 떨어졌습니다. 그때 시니어면 사업부터 할 줄 알아야 한다는 말씀을 들었고, 맞는 지적이라고 생각했습니다.\n그 뒤로 의식적으로 범위를 넓혔습니다. 지금 쿠팡스탬프 개선을 맡고 있는데, 제휴 계약 조건부터 파악하고 들어갔습니다. 유입 경로와 구매 상품에 따라 정산 단가가 달라지는 구조입니다.\n리워드 종류가 너무 많았습니다. 스탬프 하나당 단가를 역산해서, 같은 비용으로 더 많은 참여를 만드는 조합으로 줄였습니다. 결과는 아직 나오지 않았습니다.\n제가 하던 범위 밖이었던 일입니다.", "audio": "audio/q02_01_me.mp3"}]}, {"no": 3, "title": "직함과 기획 경력", "turns": [{"speaker": "interviewer", "text": "기획 경력이라고 쓰셨는데, 실제 직함은 디자이너 아닌가요?", "audio": "audio/q03_00_interviewer.mp3"}, {"speaker": "me", "text": "맞습니다. 직군은 디자인입니다.\n다만 저희 UX팀은 UX 설계와 GUI 디자인이 직무로 나뉘어 있고, 제가 맡은 쪽은 설계입니다. 산출물 중에 UID가 있습니다. 화면마다 상태를 정의하고, 분기 조건과 예외 케이스, 에러 상황까지 개발자가 그대로 구현할 수 있는 수준으로 씁니다. 실전투자대회 기능이나 상품권 플로우처럼 조건이 복잡한 영역에서 특히 그랬습니다.\n화면을 그린 사람이 상태 정의까지 하면 빠지는 케이스가 줄어듭니다. 분리되면 이 상황은 어떻게 되나요라는 질문이 개발 중에 계속 나옵니다.\n결제 화면 개선이 그 한 바퀴를 보여준다고 생각합니다. 지표로 이탈 구간을 찾고, 원인을 세우고, 화면과 정책을 설계하고, 릴리즈 후 전환율을 다시 봤습니다.", "audio": "audio/q03_01_me.mp3"}, {"speaker": "interviewer", "text": "그럼 기획자는 뭘 했나요?", "audio": "audio/q03_02_interviewer.mp3"}, {"speaker": "me", "text": "사업팀이 제휴 조건과 상품 라인업을 정했고, 개발 조직이 시스템 구조를 잡았습니다. 저는 그 사이에서 사용자가 겪는 흐름과 화면, 정책을 설계하는 쪽을 맡았습니다.", "audio": "audio/q03_03_me.mp3"}, {"speaker": "interviewer", "text": "디자인도 계속 하고 싶으신가요?", "audio": "audio/q03_04_interviewer.mp3"}, {"speaker": "me", "text": "설계 단계에서 화면을 직접 그릴 수 있는 건 제 장점이라고 생각합니다. 다만 하고 싶은 일은 문제를 정의하고 지표로 책임지는 쪽입니다.", "audio": "audio/q03_05_me.mp3"}]}, {"no": 4, "title": "모바일 기획 경력", "turns": [{"speaker": "interviewer", "text": "경력이 11년인데 모바일 기획은 언제부터인가요?", "audio": "audio/q04_00_interviewer.mp3"}, {"speaker": "me", "text": "2020년부터입니다. 6년 반 정도 됩니다. 앞의 5년은 B2B 산업용과 전력 솔루션 UI를 했습니다.\n전력 솔루션이 첫 도메인이었고, 그 뒤로 금 투자, 만보기, 쇼핑으로 옮겨왔습니다.", "audio": "audio/q04_01_me.mp3"}]}, {"no": 5, "title": "팀 구성", "turns": [{"speaker": "interviewer", "text": "팀 구성이 어떻게 됐나요? 기획자나 PO가 따로 있었나요?", "audio": "audio/q05_00_interviewer.mp3"}, {"speaker": "me", "text": "있었습니다. 서비스를 무엇으로 할지, 어떤 제휴사와 어떤 상품을 다룰지는 사업 조직에서 정합니다. 제가 들어가는 건 그 다음입니다.\n서비스 하나를 0에서 끝까지 책임진 경험은 없습니다. 대신 기능 단위로는 한 바퀴를 돌려봤습니다. 결제 화면은 문제를 제가 찾아서, 고칠 방향을 정하고, 설계해서, 지표로 확인했습니다. 공동구매 예측 도구는 더 작지만 더 완전합니다. 만들지 말지부터 제작까지 혼자 했습니다.\n기능 단위는 해봤고, 서비스 단위로 해보고 싶어서 지원했습니다.", "audio": "audio/q05_01_me.mp3"}]}, {"no": 6, "title": "전환율 72% 상승", "turns": [{"speaker": "interviewer", "text": "전환율 72% 상승이 정말 그 개선 때문인가요?", "audio": "audio/q06_00_interviewer.mp3"}, {"speaker": "me", "text": "전환율이 3.99%에서 6.86%로 올랐습니다. 다만 같은 시기에 첫구매 고객 대상 프로모션이 있었습니다. 순수하게 화면 효과만은 아닙니다.\nA/B 테스트는 하지 못했습니다. 전월 대비 비교라 한계가 있다는 것도 알고 있습니다.", "audio": "audio/q06_01_me.mp3"}]}, {"no": 7, "title": "공동구매 예측 툴", "turns": [{"speaker": "interviewer", "text": "공동구매 예측 툴을 어떻게 만드셨나요?", "audio": "audio/q07_00_interviewer.mp3"}, {"speaker": "me", "text": "담당자가 실적 엑셀을 올리면, 툴이 그 파일을 주기적으로 읽어서 최신 사례까지 반영해 판단합니다. 노코드 툴과 OpenAI API를 붙였습니다. 모델을 학습시킨 건 아니고, 과거 실적을 참조하게 만든 판단 보조 도구입니다.\n정확도는 따로 측정하지 않았습니다. 정답이 있는 문제가 아니었고, 담당자 경험에만 의존하던 판단에 근거를 하나 더 얹는 게 목적이었습니다.\n직접 만든 이유는 개발 리소스를 요청할 만한 크기가 아니었기 때문입니다.", "audio": "audio/q07_01_me.mp3"}]}, {"no": 8, "title": "혼자 앞서간 경험", "turns": [{"speaker": "interviewer", "text": "혼자 앞서가서 문제가 됐던 경험이 있나요?", "audio": "audio/q08_00_interviewer.mp3"}, {"speaker": "me", "text": "공동구매 예측 도구를 만들었을 때입니다. 만드는 데 집중해서, 정작 쓸 담당자에게 왜 필요한지와 기존 방식을 어떻게 대체하는지를 충분히 공유하지 않았습니다. 결과물은 나왔는데 쓰이기까지 시간이 걸렸습니다.\n그 뒤로는 착수 전에 두 줄을 먼저 공유합니다. 왜 지금 이걸 하는지, 실패하면 무엇을 알게 되는지.", "audio": "audio/q08_01_me.mp3"}]}, {"no": 9, "title": "추천 시스템 논문", "turns": [{"speaker": "interviewer", "text": "추천 시스템 논문은 어떤 걸 읽으셨나요?", "audio": "audio/q09_00_interviewer.mp3"}, {"speaker": "me", "text": "장단기 관심사를 다루는 논문 두 편을 봤습니다. IJCAI 2019의 SLi-Rec과 WWW 2022의 CLSR입니다. 앞의 논문은 시간 간격에 따라 장기와 단기 비중을 조절하는 방식이고, 뒤의 논문은 둘을 아예 분리해서 학습한 뒤 합칩니다. CLSR이 SLi-Rec을 직접 비판하면서 나온 논문이라 같이 보면 쟁점이 보입니다.\n모델을 만들려고 읽은 건 아닙니다. 추천이 안 먹힐 때 원인이 두 갈래로 나뉜다는 걸 이해하려고 봤습니다.\n직접 적용하는 단계까지는 가지 못했습니다.", "audio": "audio/q09_01_me.mp3"}]}, {"no": 10, "title": "SQL 직접 vs 요청", "turns": [{"speaker": "interviewer", "text": "SQL을 직접 뽑는 일과 데이터 조직에 요청하는 일의 기준이 뭔가요?", "audio": "audio/q10_00_interviewer.mp3"}, {"speaker": "me", "text": "기준은 가설이 있느냐입니다.\n제가 직접 보는 건 대부분 이 구간에서 뭔가 일어나는 것 같은데를 확인하는 단계입니다. 가설이 거칠어서 여러 번 돌려봐야 하고, 요청하면 왕복이 길어집니다.\n반대로 정의가 명확하고 정기적으로 봐야 하는 지표, 또는 제가 접근할 수 없는 데이터는 요청합니다.", "audio": "audio/q10_01_me.mp3"}]}, {"no": 11, "title": "정량과 정성의 충돌", "turns": [{"speaker": "interviewer", "text": "정량과 정성이 서로 다른 답을 가리켰던 적이 있나요?", "audio": "audio/q11_00_interviewer.mp3"}, {"speaker": "me", "text": "숫자는 어디서 문제가 생기는지를 알려주고, 인터뷰는 왜 그런지를 알려준다고 봅니다. 둘이 어긋나면 대개 숫자를 잘못 읽었거나, 인터뷰 대상이 그 숫자를 만든 사람이 아닌 경우입니다. 그래서 먼저 확인하는 건 두 데이터가 같은 사용자 집단을 보고 있는지입니다.", "audio": "audio/q11_01_me.mp3"}]}, {"no": 12, "title": "포인트 vs 현금 서비스", "turns": [{"speaker": "interviewer", "text": "포인트 기반 서비스와 현금 기반 서비스, 기획할 때 뭐가 다른가요?", "audio": "audio/q12_00_interviewer.mp3"}, {"speaker": "me", "text": "포인트는 심리적 장벽이 낮습니다. 공짜로 얻은 돈이라는 감각이 있어서 첫 시도가 쉽습니다. 대신 쉽게 쓰는 만큼 쉽게 떠납니다. 그래서 포인트 서비스는 재방문 설계가 핵심이었습니다.\n현금은 반대입니다. 첫 진입이 어렵고, 대신 한 번 시작하면 오래 갑니다. 그래서 초기 신뢰 설계가 더 중요하다고 봅니다. 금액이 어떻게 계산되는지, 지금 내 돈이 어떤 상태인지가 매 단계 보여야 합니다.\n제가 해온 건 포인트 쪽이지만, 사용자가 멈추는 지점은 비슷했습니다. 금액이 불확실할 때였습니다.", "audio": "audio/q12_01_me.mp3"}]}, {"no": 13, "title": "e금 vs 금 모으기", "turns": [{"speaker": "interviewer", "text": "야금야금의 e금과 카카오뱅크 금 모으기는 어떻게 다르다고 보시나요?", "audio": "audio/q13_00_interviewer.mp3"}, {"speaker": "me", "text": "가장 큰 차이는 끝이 있느냐라고 봅니다.\ne금은 사고파는 게 계속 이어집니다. 끝나는 지점이 없습니다. 반면 금 모으기는 26주 뒤에 목표 중량에 도달하고, 보관하거나 팔거나 실물로 받습니다. 목표가 있는 상품입니다.\n그래서 설계 포인트가 다르다고 봅니다. e금은 시세를 계속 확인하게 만드는 게 중요했다면, 금 모으기는 26주를 완주하게 만드는 게 중요할 것 같습니다. 그리고 완주한 다음에 무엇을 하게 할지도요.", "audio": "audio/q13_01_me.mp3"}]}, {"no": 14, "title": "카카오뱅크가 풀어야 할 문제", "turns": [{"speaker": "interviewer", "text": "여행, 하이패스, 금, 보험 중 하나를 골라 지금 카카오뱅크가 풀어야 할 문제를 짚어 주세요.", "audio": "audio/q14_00_interviewer.mp3"}, {"speaker": "me", "text": "밖에서 본 것이라 틀릴 수 있습니다.\n먼저 서비스 자체는 잘 만들었다고 봅니다. 26주적금이라는 카카오뱅크 고유 문법을 실물 금에 얹은 게 좋았습니다. 목표 중량을 정하고 26주 자동이체로 모으는 구조요.\n제가 보는 지점은 두 곳입니다.\n첫째, 중간입니다. 시세가 떨어지는 구간에 자동이체가 계속 나가면 불안해집니다. 사실 분할 매수는 그 구간에서 이득인데, 그게 화면에 보이지 않습니다. 이번 주는 시세가 낮아서 평소보다 많이 샀습니다를 보여주면 하락 구간이 오히려 성취가 됩니다.\n둘째, 끝입니다. 26주를 완주하면 보관하거나, 팔거나, 실물로 받습니다. 셋 다 거기서 끝나는 선택입니다. 다음 루프가 없습니다.\n확인한다면 주차별 해지율을 보겠습니다. 시세가 떨어진 주간에 해지가 몰리는지, 완주한 사람이 다시 가입하는지요.\n야금야금에서도 비슷한 걸 봤습니다. 포인트가 돌아야 사용자가 돌아왔습니다.", "audio": "audio/q14_01_me.mp3"}, {"speaker": "interviewer", "text": "여행으로 답한다면요?", "audio": "audio/q14_02_interviewer.mp3"}, {"speaker": "me", "text": "둘러보기만 해도 하루 1회 리워드를 주는 구조는 방문을 만듭니다. 다만 방문과 예약 전환은 별개입니다. 해외 패키지는 고민 기간이 길고 혼자 결정하지 않습니다. 재탐색과 공유 구조가 필요해 보입니다.", "audio": "audio/q14_03_me.mp3"}]}, {"no": 15, "title": "은행 앱의 비금융 서비스", "turns": [{"speaker": "interviewer", "text": "은행 앱에 비금융 서비스가 들어가는 게 왜 필요하다고 보시나요?", "audio": "audio/q15_00_interviewer.mp3"}, {"speaker": "me", "text": "은행 앱은 볼일이 있을 때만 엽니다. 이체하고 잔액 보고 닫습니다. 그래서 오늘 이 앱을 열 이유가 필요하다고 봅니다.\n비금융 서비스가 그 이유를 만듭니다. 다만 아무거나 붙이면 안 되고, 돈 쓰는 맥락과 이어져야 한다고 봅니다. 여행은 예약하면서 환전이 필요하고, 하이패스는 충전이 붙고, 금은 그 자체가 자산입니다. 금융으로 자연스럽게 이어지는 생활 영역이 맞는 것 같습니다.", "audio": "audio/q15_01_me.mp3"}]}, {"no": 16, "title": "제휴 서비스에서 기획자의 역할", "turns": [{"speaker": "interviewer", "text": "제휴 서비스는 경험 대부분을 제휴사가 만듭니다. 그 구조에서 기획자 역할이 뭘까요?", "audio": "audio/q16_00_interviewer.mp3"}, {"speaker": "me", "text": "번역이라고 생각합니다. 제휴사 상품 구조를 그대로 가져오면 그 회사 앱이 되지, 카카오뱅크가 되지 않습니다.\n금 모으기가 좋은 예라고 봅니다. 금방 입장에서는 금 분할 매수 상품이지만, 카카오뱅크 안에서는 26주적금 문법으로 번역됐습니다. 사용자는 이미 아는 방식으로 새 상품을 씁니다.\n그리고 이음새를 책임지는 것도 기획자 몫이라고 봅니다. 제휴 서비스는 경계에서 문제가 생깁니다. 어디까지가 우리 책임인지 사용자는 모르니까요.\nOK캐쉬백 쇼핑도 제휴사 상품을 앱 안에 들이는 구조였습니다.", "audio": "audio/q16_01_me.mp3"}]}, {"no": 17, "title": "아이디어 판단 기준", "turns": [{"speaker": "interviewer", "text": "아이디어 단계에서 된다 안 된다를 무엇으로 판단하시나요?", "audio": "audio/q17_00_interviewer.mp3"}, {"speaker": "me", "text": "이미 그 행동을 하고 있는 사람이 있느냐를 봅니다. 다른 데서라도요. 없는 행동을 새로 만드는 건 어렵지만, 이미 하는 걸 편하게 만드는 건 됩니다.\n그 다음은 수익 구조입니다. 쿠팡스탬프를 하면서 배운 건데, 줄 수 있는 것의 크기가 정해져 있으면 기획 범위도 거기서 정해집니다. 단가를 모르고 설계하면 나중에 다 뒤집힙니다.", "audio": "audio/q17_01_me.mp3"}]}, {"no": 18, "title": "데이터 없는 신사업의 문제 정의", "turns": [{"speaker": "interviewer", "text": "신사업은 데이터가 없는 상태에서 시작합니다. 그럴 때 어떻게 문제를 정의하시나요?", "audio": "audio/q18_00_interviewer.mp3"}, {"speaker": "me", "text": "우리 데이터가 없을 뿐이지, 비슷한 행동의 데이터는 어딘가에 있다고 봅니다. 같은 시장의 기존 서비스, 공개된 시장 자료, 유사 상품의 이용 패턴이요.\n그 다음은 사람에게 직접 확인합니다. 오락은 FGI로 사용자 유형부터 다시 잡았고, 야금야금은 UT로 가설을 확인했습니다. 숫자가 없으면 사람에게 물어보는 게 맞다고 봅니다.", "audio": "audio/q18_01_me.mp3"}]}, {"no": 19, "title": "의견이 받아들여지지 않을 때", "turns": [{"speaker": "interviewer", "text": "본인 의견이 받아들여지지 않았을 때는 어떻게 하시나요?", "audio": "audio/q19_00_interviewer.mp3"}, {"speaker": "me", "text": "일단 따릅니다. 대신 무엇을 보면 판단이 바뀌는지를 정해둡니다. 지표든 사용자 반응이든 기준을 정해놓으면, 나중에 감정 싸움이 안 됩니다.", "audio": "audio/q19_01_me.mp3"}]}, {"no": 20, "title": "이직 사유", "turns": [{"speaker": "interviewer", "text": "왜 지금 이직을 결심하셨나요?", "audio": "audio/q20_00_interviewer.mp3"}, {"speaker": "me", "text": "지금 회사에 불만이 있어서는 아닙니다. 쇼핑 영역을 맡아 지표도 나오고 있고, 일하는 환경도 괜찮습니다.\n다만 제가 맡는 범위가 정해져 있습니다. 어떤 제휴사와 어떤 상품을 붙일지는 사업팀이 정하고, 저는 그게 정해진 다음부터 들어갑니다. 설계는 제가 하는데 무엇을 할지는 제 몫이 아닙니다.\n결제 화면 개선을 하면서 그 선이 더 뚜렷하게 보였습니다. 지표를 보고 문제를 찾아 고쳤더니 전환율이 올랐는데, 그 경험이 재미있었습니다. 그러면서 이걸 화면 단위가 아니라 서비스 단위로 하면 어떨까 하는 생각이 들었습니다.\n신사업기획팀은 아이디어를 찾는 단계부터 출시하고 고치는 단계까지 한 사람이 맡는다고 되어 있었습니다. 제가 다음으로 하고 싶은 일이 그겁니다.", "audio": "audio/q20_01_me.mp3"}, {"speaker": "interviewer", "text": "지금 회사에서 그 역할로 옮길 수는 없나요?", "audio": "audio/q20_02_interviewer.mp3"}, {"speaker": "me", "text": "조직 구조상 기획 직무는 별도 조직에 있습니다. 옮기려면 직군 자체를 바꿔야 하는데, 그렇게 되면 지금까지 쌓은 설계 역량을 살리기 어려운 구조였습니다.", "audio": "audio/q20_03_me.mp3"}, {"speaker": "interviewer", "text": "연봉 때문은 아닌가요?", "audio": "audio/q20_04_interviewer.mp3"}, {"speaker": "me", "text": "처우도 당연히 고려합니다. 다만 그게 첫 번째 이유였다면 다른 선택지도 있었습니다.", "audio": "audio/q20_05_me.mp3"}]}, {"no": 21, "title": "왜 카카오뱅크인가", "turns": [{"speaker": "interviewer", "text": "왜 카카오뱅크인가요? 다른 곳도 보고 계신가요?", "audio": "audio/q21_00_interviewer.mp3"}, {"speaker": "me", "text": "다른 곳도 보고 있습니다. 다만 이 팀은 작년에도 지원했고, 다시 지원했습니다.\n카카오뱅크를 보는 이유는 금융 앱인데 금융만 하지 않는다는 점입니다. 여행, 하이패스, 금을 앱 안에 들이면서도 카카오뱅크답게 만들어냅니다. 제가 해온 일이 그 지점과 가깝다고 생각합니다.", "audio": "audio/q21_01_me.mp3"}]}, {"no": 22, "title": "현 회사의 아쉬운 점", "turns": [{"speaker": "interviewer", "text": "지금 회사에서 아쉬운 점이 뭔가요?", "audio": "audio/q22_00_interviewer.mp3"}, {"speaker": "me", "text": "역할이 나뉘어 있다는 점입니다. 무엇을 할지는 사업 조직이 정하고, 저는 그 다음부터 들어갑니다. 설계 전문성은 쌓이는데, 그 앞단으로 나가기가 어렵습니다.", "audio": "audio/q22_01_me.mp3"}]}, {"no": 23, "title": "5년 뒤", "turns": [{"speaker": "interviewer", "text": "5년 뒤 어떤 사람이 되어 있고 싶으신가요?", "audio": "audio/q23_00_interviewer.mp3"}, {"speaker": "me", "text": "서비스 하나를 처음부터 끝까지 책임져본 사람이 되어 있고 싶습니다. 지금은 기능 단위까지입니다.\n그리고 고객의 하루에 남는 서비스를 만들고 싶습니다. 열 이유가 있는 앱이요.", "audio": "audio/q23_01_me.mp3"}]}];
+const turns = [];
+DATA.forEach(q => q.turns.forEach(t => turns.push({...t, q})));
+
+const $ = id => document.getElementById(id);
+const au = $('au'), list = $('list');
+const SPEEDS = [0.8, 0.9, 1.0, 1.1, 1.25, 1.5];
+const store = { get(k, d){ try{ const v = localStorage.getItem('iv_'+k); return v===null?d:JSON.parse(v) }catch(e){ return d } },
+                set(k, v){ try{ localStorage.setItem('iv_'+k, JSON.stringify(v)) }catch(e){} } };
+let idx = Math.min(store.get('idx', 0), turns.length - 1);
+let speed = store.get('speed', 1.0), practice = store.get('practice', false);
+let playing = false, gapTimer = null;
+
+// 렌더
+turns.forEach((t, i) => {
+  if (!t.q._el) {
+    const sec = document.createElement('section'); sec.className = 'q';
+    sec.innerHTML = `<h2><span class="n">Q${t.q.no}</span>${t.q.title}</h2>`;
+    sec.querySelector('h2').onclick = () => go(i, true);
+    list.appendChild(sec); t.q._el = sec;
+  }
+  const d = document.createElement('div');
+  d.className = 'turn ' + t.speaker;
+  d.innerHTML = `<span class="who">${t.speaker === 'interviewer' ? '면접관' : '나'}</span>`;
+  d.appendChild(document.createTextNode(t.text));
+  d.onclick = () => go(i, true);
+  t.el = d; t.q._el.appendChild(d);
+});
+
+function mark(scroll){
+  turns.forEach((t, i) => t.el.classList.toggle('active', i === idx));
+  const t = turns[idx];
+  $('now').innerHTML = `<b>Q${t.q.no}</b> · ${t.q.title} · ${t.speaker === 'interviewer' ? '면접관' : '나'}`;
+  if (scroll) t.el.scrollIntoView({behavior:'smooth', block:'center'});
+  store.set('idx', idx);
+  if ('mediaSession' in navigator) navigator.mediaSession.metadata = new MediaMetadata({
+    title: `Q${t.q.no}. ${t.q.title}`, artist: t.speaker === 'interviewer' ? '면접관' : '나', album: '면접 시뮬레이션'});
+}
+function setIcon(){
+  $('icon').innerHTML = playing ? '<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
+  $('play').setAttribute('aria-label', playing ? '일시정지' : '재생');
+}
+function load(i){ idx = i; au.src = turns[i].audio; au.playbackRate = speed; mark(true); }
+function go(i, play){
+  clearTimeout(gapTimer); $('hint').textContent = '';
+  if (i < 0 || i >= turns.length) { playing = false; setIcon(); return; }
+  load(i); if (play) { playing = true; au.play().catch(()=>{ playing=false; setIcon(); }); } setIcon();
+}
+au.addEventListener('ended', () => {
+  const cur = turns[idx], nxt = turns[idx + 1];
+  if (!nxt) { playing = false; setIcon(); $('hint').textContent = '끝까지 들으셨어요 👏'; return; }
+  if (practice && cur.speaker === 'interviewer' && nxt.speaker === 'me') {
+    load(idx + 1); playing = false; setIcon();
+    $('hint').textContent = '직접 답해보세요. 준비되면 ▶︎를 눌러 모범 답변을 들어요.'; return;
+  }
+  // 화자 전환·질문 전환 사이에 자연스러운 쉼
+  const pause = nxt.q !== cur.q ? 1400 : 650;
+  gapTimer = setTimeout(() => go(idx + 1, true), pause / speed);
+});
+au.addEventListener('error', () => { playing = false; setIcon(); $('hint').textContent = '오디오를 불러오지 못했어요.'; });
+au.addEventListener('timeupdate', () => {
+  $('prog').style.width = au.duration ? (au.currentTime / au.duration * 100) + '%' : '0';
+});
+$('bar').onclick = e => { if (au.duration) au.currentTime = e.offsetX / e.currentTarget.clientWidth * au.duration; };
+$('play').onclick = () => {
+  if (playing) { au.pause(); clearTimeout(gapTimer); playing = false; }
+  else { $('hint').textContent = ''; if (!au.src) load(idx); au.playbackRate = speed; playing = true; au.play().catch(()=>{ playing=false; setIcon(); }); }
+  setIcon();
+};
+const qStart = dir => {
+  const qi = DATA.indexOf(turns[idx].q) + dir;
+  const target = DATA[Math.max(0, Math.min(DATA.length - 1, qi))];
+  return turns.findIndex(t => t.q === target);
+};
+$('prevQ').onclick = () => { const s = qStart(0); go(idx > s || au.currentTime > 3 ? s : qStart(-1), playing); };
+$('nextQ').onclick = () => go(qStart(1), playing);
+function paintOpts(){ $('speed').textContent = (Number.isInteger(speed) ? speed.toFixed(1) : String(speed)) + '×'; $('practice').classList.toggle('on', practice); }
+$('speed').onclick = () => { speed = SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length] || 1; au.playbackRate = speed; store.set('speed', speed); paintOpts(); };
+$('practice').onclick = () => { practice = !practice; store.set('practice', practice); paintOpts();
+  $('hint').textContent = practice ? '연습 모드: 면접관 질문 뒤에 멈춥니다.' : ''; };
+document.addEventListener('keydown', e => { if (e.code === 'Space' && e.target === document.body) { e.preventDefault(); $('play').click(); } });
+if ('mediaSession' in navigator) {
+  navigator.mediaSession.setActionHandler('play', () => { if (!playing) $('play').click(); });
+  navigator.mediaSession.setActionHandler('pause', () => { if (playing) $('play').click(); });
+  navigator.mediaSession.setActionHandler('previoustrack', () => $('prevQ').click());
+  navigator.mediaSession.setActionHandler('nexttrack', () => $('nextQ').click());
+}
+paintOpts(); load(idx); au.pause();
+</script>
+</body>
+</html>
