@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>면접 시뮬레이션 오디오</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --bg:#f6f5f2; --surface:#fff; --text:#1d1d1f; --muted:#6e6e73; --line:#e6e4df;
+  --her:#c2410c; --her-bg:#fff4ed; --me:#1d4ed8; --me-bg:#eef3ff; --accent:#1d1d1f;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#121212; --surface:#1c1c1e; --text:#f2f2f2; --muted:#9a9aa0; --line:#2c2c2e;
+    --her:#fb923c; --her-bg:#2a1d14; --me:#7aa2ff; --me-bg:#161f33; --accent:#f2f2f2; }
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);
+  font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:720px;margin:0 auto;padding:24px 16px 200px}
+header h1{font-size:22px;margin:8px 0 4px;letter-spacing:-.02em}
+header p{margin:0;color:var(--muted);font-size:14px}
+.legend{display:flex;gap:14px;margin:14px 0 8px;font-size:13px;color:var(--muted)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.q{margin:28px 0 0}
+.q h2{font-size:13px;font-weight:600;color:var(--muted);margin:0 0 10px;cursor:pointer;display:flex;gap:8px;align-items:center}
+.q h2 .n{font-variant-numeric:tabular-nums;color:var(--text)}
+.turn{border-radius:14px;padding:12px 14px;margin:8px 0;line-height:1.7;font-size:16px;cursor:pointer;
+  border:1px solid transparent;transition:background .2s,border-color .2s;white-space:pre-line}
+.turn .who{display:block;font-size:12px;font-weight:700;margin-bottom:2px}
+.turn.interviewer .who{color:var(--her)}
+.turn.me .who{color:var(--me)}
+.turn.interviewer{margin-right:12%}
+.turn.me{margin-left:6%}
+.turn.active.interviewer{background:var(--her-bg);border-color:var(--her)}
+.turn.active.me{background:var(--me-bg);border-color:var(--me)}
+.turn:not(.active){opacity:.72}
+.player{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--surface) 92%,transparent);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);
+  padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
+.player .in{max-width:720px;margin:0 auto}
+.now{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:8px}
+.now b{color:var(--text)}
+.bar{height:4px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:10px;cursor:pointer}
+.bar i{display:block;height:100%;width:0;background:var(--accent)}
+.ctrls{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.btns{display:flex;align-items:center;gap:6px}
+button{font:inherit;color:var(--text);background:none;border:0;cursor:pointer;border-radius:999px;padding:8px}
+button:hover{background:var(--line)}
+.play{width:52px;height:52px;background:var(--accent);color:var(--bg);display:grid;place-items:center}
+.play:hover{background:var(--accent);opacity:.9}
+.opts{display:flex;gap:6px;align-items:center;font-size:13px}
+.chip{border:1px solid var(--line);padding:6px 10px;font-size:13px}
+.chip.on{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+svg{display:block}
+.hint{font-size:12px;color:var(--muted);margin-top:6px;min-height:1em}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p>🎧 듣기용 답변</p>
+    <h1>카카오뱅크 신사업기획 면접 시뮬레이션</h1>
+    <p><span id="qcount"></span> · 문장을 누르면 거기서부터 재생돼요</p>
+    <div class="legend"><span><i class="dot" style="background:var(--her)"></i>면접관</span><span><i class="dot" style="background:var(--me)"></i>나</span></div>
+  </header>
+  <main id="list"></main>
+</div>
+
+<div class="player"><div class="in">
+  <div class="now" id="now">재생을 눌러 시작하세요</div>
+  <div class="bar" id="bar"><i id="prog"></i></div>
+  <div class="ctrls">
+    <div class="btns">
+      <button id="prevQ" aria-label="이전 질문"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg></button>
+      <button class="play" id="play" aria-label="재생"><svg id="icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+      <button id="nextQ" aria-label="다음 질문"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+    </div>
+    <div class="opts">
+      <button class="chip" id="speed">1.0×</button>
+      <button class="chip" id="practice" title="면접관 질문 뒤에 멈춰서 직접 답해볼 수 있어요">연습 모드</button>
+    </div>
+  </div>
+  <div class="hint" id="hint"></div>
+</div></div>
+
+<audio id="au" preload="auto"></audio>
+<script>
+const DATA = __DATA__;
+const turns = [];
+DATA.forEach(q => q.turns.forEach(t => turns.push({...t, q})));
+
+const $ = id => document.getElementById(id);
+const au = $('au'), list = $('list');
+const SPEEDS = [0.8, 0.9, 1.0, 1.1, 1.25, 1.5];
+const store = { get(k, d){ try{ const v = localStorage.getItem('iv_'+k); return v===null?d:JSON.parse(v) }catch(e){ return d } },
+                set(k, v){ try{ localStorage.setItem('iv_'+k, JSON.stringify(v)) }catch(e){} } };
+let idx = Math.min(store.get('idx', 0), turns.length - 1);
+let speed = store.get('speed', 1.0), practice = store.get('practice', false);
+let playing = false, gapTimer = null;
+
+// 렌더
+turns.forEach((t, i) => {
+  if (!t.q._el) {
+    const sec = document.createElement('section'); sec.className = 'q';
+    sec.innerHTML = `<h2><span class="n">Q${t.q.no}</span>${t.q.title}</h2>`;
+    sec.querySelector('h2').onclick = () => go(i, true);
+    list.appendChild(sec); t.q._el = sec;
+  }
+  const d = document.createElement('div');
+  d.className = 'turn ' + t.speaker;
+  d.innerHTML = `<span class="who">${t.speaker === 'interviewer' ? '면접관' : '나'}</span>`;
+  d.appendChild(document.createTextNode(t.text));
+  d.onclick = () => go(i, true);
+  t.el = d; t.q._el.appendChild(d);
+});
+
+function mark(scroll){
+  turns.forEach((t, i) => t.el.classList.toggle('active', i === idx));
+  const t = turns[idx];
+  $('now').innerHTML = `<b>Q${t.q.no}</b> · ${t.q.title} · ${t.speaker === 'interviewer' ? '면접관' : '나'}`;
+  if (scroll) t.el.scrollIntoView({behavior:'smooth', block:'center'});
+  store.set('idx', idx);
+  if ('mediaSession' in navigator) navigator.mediaSession.metadata = new MediaMetadata({
+    title: `Q${t.q.no}. ${t.q.title}`, artist: t.speaker === 'interviewer' ? '면접관' : '나', album: '면접 시뮬레이션'});
+}
+function setIcon(){
+  $('icon').innerHTML = playing ? '<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
+  $('play').setAttribute('aria-label', playing ? '일시정지' : '재생');
+}
+function load(i){ idx = i; au.src = turns[i].audio; au.playbackRate = speed; mark(true); }
+function go(i, play){
+  clearTimeout(gapTimer); $('hint').textContent = '';
+  if (i < 0 || i >= turns.length) { playing = false; setIcon(); return; }
+  load(i); if (play) { playing = true; au.play().catch(()=>{ playing=false; setIcon(); }); } setIcon();
+}
+au.addEventListener('ended', () => {
+  const cur = turns[idx], nxt = turns[idx + 1];
+  if (!nxt) { playing = false; setIcon(); $('hint').textContent = '끝까지 들으셨어요 👏'; return; }
+  if (practice && cur.speaker === 'interviewer' && nxt.speaker === 'me') {
+    load(idx + 1); playing = false; setIcon();
+    $('hint').textContent = '직접 답해보세요. 준비되면 ▶︎를 눌러 모범 답변을 들어요.'; return;
+  }
+  // 화자 전환·질문 전환 사이에 자연스러운 쉼
+  const pause = nxt.q !== cur.q ? 1400 : 650;
+  gapTimer = setTimeout(() => go(idx + 1, true), pause / speed);
+});
+au.addEventListener('error', () => { playing = false; setIcon(); $('hint').textContent = '오디오를 불러오지 못했어요.'; });
+au.addEventListener('timeupdate', () => {
+  $('prog').style.width = au.duration ? (au.currentTime / au.duration * 100) + '%' : '0';
+});
+$('bar').onclick = e => { if (au.duration) au.currentTime = e.offsetX / e.currentTarget.clientWidth * au.duration; };
+$('play').onclick = () => {
+  if (playing) { au.pause(); clearTimeout(gapTimer); playing = false; }
+  else { $('hint').textContent = ''; if (!au.src) load(idx); au.playbackRate = speed; playing = true; au.play().catch(()=>{ playing=false; setIcon(); }); }
+  setIcon();
+};
+const qStart = dir => {
+  const qi = DATA.indexOf(turns[idx].q) + dir;
+  const target = DATA[Math.max(0, Math.min(DATA.length - 1, qi))];
+  return turns.findIndex(t => t.q === target);
+};
+$('prevQ').onclick = () => { const s = qStart(0); go(idx > s || au.currentTime > 3 ? s : qStart(-1), playing); };
+$('nextQ').onclick = () => go(qStart(1), playing);
+function paintOpts(){ $('speed').textContent = (Number.isInteger(speed) ? speed.toFixed(1) : String(speed)) + '×'; $('practice').classList.toggle('on', practice); }
+$('speed').onclick = () => { speed = SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length] || 1; au.playbackRate = speed; store.set('speed', speed); paintOpts(); };
+$('practice').onclick = () => { practice = !practice; store.set('practice', practice); paintOpts();
+  $('hint').textContent = practice ? '연습 모드: 면접관 질문 뒤에 멈춥니다.' : ''; };
+document.addEventListener('keydown', e => { if (e.code === 'Space' && e.target === document.body) { e.preventDefault(); $('play').click(); } });
+if ('mediaSession' in navigator) {
+  navigator.mediaSession.setActionHandler('play', () => { if (!playing) $('play').click(); });
+  navigator.mediaSession.setActionHandler('pause', () => { if (playing) $('play').click(); });
+  navigator.mediaSession.setActionHandler('previoustrack', () => $('prevQ').click());
+  navigator.mediaSession.setActionHandler('nexttrack', () => $('nextQ').click());
+}
+$("qcount").textContent = `질문 ${DATA.length}개`;
+paintOpts(); load(idx); au.pause();
+</script>
+</body>
+</html>
