@@ -89,6 +89,7 @@ svg{display:block}
 <audio id="au" preload="auto"></audio>
 <script>
 const DATA = __DATA__;
+const lab = q => q.no ? `Q${q.no}` : '역질문';
 const turns = [];
 DATA.forEach(q => q.turns.forEach(t => turns.push({...t, q})));
 
@@ -105,7 +106,7 @@ let playing = false, gapTimer = null;
 turns.forEach((t, i) => {
   if (!t.q._el) {
     const sec = document.createElement('section'); sec.className = 'q';
-    sec.innerHTML = `<h2><span class="n">Q${t.q.no}</span>${t.q.title}</h2>`;
+    sec.innerHTML = `<h2><span class="n">${lab(t.q)}</span>${t.q.title}</h2>`;
     sec.querySelector('h2').onclick = () => go(i, true);
     list.appendChild(sec); t.q._el = sec;
   }
@@ -120,11 +121,11 @@ turns.forEach((t, i) => {
 function mark(scroll){
   turns.forEach((t, i) => t.el.classList.toggle('active', i === idx));
   const t = turns[idx];
-  $('now').innerHTML = `<b>Q${t.q.no}</b> · ${t.q.title} · ${t.speaker === 'interviewer' ? '면접관' : '나'}`;
+  $('now').innerHTML = `<b>${lab(t.q)}</b> · ${t.q.title} · ${t.speaker === 'interviewer' ? '면접관' : '나'}`;
   if (scroll) t.el.scrollIntoView({behavior:'smooth', block:'center'});
   store.set('idx', idx);
   if ('mediaSession' in navigator) navigator.mediaSession.metadata = new MediaMetadata({
-    title: `Q${t.q.no}. ${t.q.title}`, artist: t.speaker === 'interviewer' ? '면접관' : '나', album: '면접 시뮬레이션'});
+    title: `${lab(t.q)}. ${t.q.title}`, artist: t.speaker === 'interviewer' ? '면접관' : '나', album: '면접 시뮬레이션'});
 }
 function setIcon(){
   $('icon').innerHTML = playing ? '<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
@@ -175,7 +176,7 @@ if ('mediaSession' in navigator) {
   navigator.mediaSession.setActionHandler('previoustrack', () => $('prevQ').click());
   navigator.mediaSession.setActionHandler('nexttrack', () => $('nextQ').click());
 }
-$("qcount").textContent = `질문 ${DATA.length}개`;
+$("qcount").textContent = `질문 ${DATA.filter(q => q.no).length}개`;
 paintOpts(); load(idx); au.pause();
 </script>
 </body>
