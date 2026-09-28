@@ -4,7 +4,7 @@ import edge_tts
 MD, DIR, TPL = "interview/interview.md", "interview", os.path.join(os.path.dirname(__file__), "template.html")
 VOICES = {"interviewer": ("ko-KR-SunHiNeural", "+0%"), "me": ("ko-KR-InJoonNeural", "-3%")}
 # 발음 보정 (화면 텍스트는 그대로, 음성만)
-FIX = [("OpenAI API", "오픈에이아이 에이피아이"), ("A/B", "에이비"), ("M/L", "엠엘"), ("v1.0", "버전 일 점 영"),
+FIX = [("OpenAI API", "오픈에이아이 에이피아이"), ("3%p", "3퍼센트포인트"), ("A/B", "에이비"), ("M/L", "엠엘"), ("v1.0", "버전 일 점 영"),
        ("1~2주", "일에서 이 주"), ("UID", "유아이디"), ("GUI", "지유아이"), ("UX", "유엑스"), ("UI", "유아이"),
        ("B2B", "비투비"), ("FGI", "에프지아이"), ("FGD", "에프지디"), ("UT", "유티"), ("SQL", "에스큐엘"), ("LLM", "엘엘엠"),
        ("MAU", "엠에이유"), ("LTV", "엘티브이"), ("PV", "피브이"), ("2030", "이공삼공"), ("Vertical", "버티컬"), ("UV", "유브이"), ("QA", "큐에이"), ("PM", "피엠"), ("PL", "피엘"), ("Flow", "플로우"), ("GPT", "지피티"), ("Cowork", "코워크"), ("1주일", "일 주일"),
