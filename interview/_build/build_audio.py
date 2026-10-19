@@ -1,10 +1,14 @@
 import asyncio, json, re, os, hashlib, glob
 import edge_tts
 
-# 사용법: python3 interview/_build/build_audio.py [페이지 폴더]  (기본: interview)
+# 사용법: python3 interview/_build/build_audio.py
+# 탭 하나 = 덱 하나. 모든 덱을 interview/index.html 한 페이지로 만든다.
 import sys
-DIR = sys.argv[1] if len(sys.argv) > 1 else "interview"
-MD, TPL = f"{DIR}/interview.md", os.path.join(os.path.dirname(__file__), "template.html")
+ROOT, TPL = "interview", os.path.join(os.path.dirname(__file__), "template.html")
+DECKS = [  # (탭 키, 탭 이름, ROOT 기준 MD 경로, ROOT 기준 음성 폴더)
+    ("kakao", "카카오뱅크", "interview.md", "audio"),
+    ("shinhan", "신한은행", "shinhan/interview.md", "shinhan/audio"),
+]
 VOICES = {"interviewer": ("ko-KR-SunHiNeural", "+0%"), "me": ("ko-KR-InJoonNeural", "-3%")}
 # 발음 보정 (화면 텍스트는 그대로, 음성만)
 FIX = [("OpenAI API", "오픈에이아이 에이피아이"), ("SOL LINK", "쏠 링크"), ("SOL", "쏠"), ("DAU", "디에이유"), ("PO", "피오"), ("3%p", "3퍼센트포인트"), ("A/B", "에이비"), ("M/L", "엠엘"), ("v1.0", "버전 일 점 영"),
@@ -19,7 +23,7 @@ def tts_text(t):
     t = re.sub(r"(\d+(?:\.\d+)?)%p", r"\1퍼센트포인트", t)
     return re.sub(r"(\d+(?:\.\d+)?)%", r"\1퍼센트", t).replace("\n", " ")
 
-def parse():
+def parse(MD):
     items, cur, spk, buf = [], None, None, []
     def flush():
         nonlocal buf, spk
@@ -36,30 +40,34 @@ def parse():
     return items
 
 async def main():
-    os.makedirs(f"{DIR}/audio", exist_ok=True)
-    items = parse(); jobs = []
-    for q in items:
-        for t in q["turns"]:
-            v, rate = VOICES[t["speaker"]]; say = tts_text(t["text"])
-            t["audio"] = f"audio/{t['speaker']}_{hashlib.sha1((v+rate+say).encode()).hexdigest()[:10]}.mp3"
-            jobs.append((t, v, rate, say))
+    decks, jobs = [], []
+    for key, label, md, adir in DECKS:
+        os.makedirs(f"{ROOT}/{adir}", exist_ok=True)
+        items = parse(f"{ROOT}/{md}")
+        for q in items:
+            for t in q["turns"]:
+                v, rate = VOICES[t["speaker"]]; say = tts_text(t["text"])
+                t["audio"] = f"{adir}/{t['speaker']}_{hashlib.sha1((v+rate+say).encode()).hexdigest()[:10]}.mp3"
+                jobs.append((t, v, rate, say))
+        title = next(l[2:].strip() for l in open(f"{ROOT}/{md}", encoding="utf-8") if l.startswith("# ")).lstrip("🎧").strip()
+        decks.append({"key": key, "label": label, "title": title, "questions": items})
     sem = asyncio.Semaphore(4); made = 0
     async def gen(t, v, rate, say):
         nonlocal made
-        path = f"{DIR}/{t['audio']}"
+        path = f"{ROOT}/{t['audio']}"
         if os.path.exists(path) and os.path.getsize(path) > 0: return
         async with sem:
             for _ in range(3):
                 try: await edge_tts.Communicate(say, v, rate=rate).save(path); made += 1; return
                 except Exception as e: print("retry", path, e); await asyncio.sleep(2)
     await asyncio.gather(*(gen(*j) for j in jobs))
-    missing = [t["audio"] for t, *_ in jobs if not (os.path.exists(f"{DIR}/{t['audio']}") and os.path.getsize(f"{DIR}/{t['audio']}") > 0)]
+    missing = [t["audio"] for t, *_ in jobs if not (os.path.exists(f"{ROOT}/{t['audio']}") and os.path.getsize(f"{ROOT}/{t['audio']}") > 0)]
     if missing: sys.exit(f"음성 생성 실패 {len(missing)}개, index.html을 갱신하지 않았습니다: {missing[:3]}")
-    keep = {f"{DIR}/{t['audio']}" for t, *_ in jobs}
-    stale = [p for p in glob.glob(f"{DIR}/audio/*.mp3") if p not in keep]
+    keep = {f"{ROOT}/{t['audio']}" for t, *_ in jobs}
+    stale = [p for _, _, _, adir in DECKS for p in glob.glob(f"{ROOT}/{adir}/*.mp3") if p not in keep]
     for p in stale: os.remove(p)
-    title = next(l[2:].strip() for l in open(MD, encoding="utf-8") if l.startswith("# ")).lstrip("🎧").strip()
-    html = open(TPL, encoding="utf-8").read().replace("__TITLE__", title).replace("__DATA__", json.dumps(items, ensure_ascii=False))
-    open(f"{DIR}/index.html", "w", encoding="utf-8").write(html)
-    print(f"{len(items)} questions, {len(jobs)} turns, {made} generated, {len(stale)} removed")
+    html = open(TPL, encoding="utf-8").read().replace("__DATA__", json.dumps(decks, ensure_ascii=False))
+    open(f"{ROOT}/index.html", "w", encoding="utf-8").write(html)
+    for d in decks: print(f"{d['label']}: {len(d['questions'])} questions, {sum(len(q['turns']) for q in d['questions'])} turns")
+    print(f"{made} generated, {len(stale)} removed")
 asyncio.run(main())

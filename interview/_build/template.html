@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>__TITLE__</title>
+<title>면접 시뮬레이션</title>
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
@@ -24,6 +24,10 @@ header h1{font-size:22px;margin:8px 0 4px;letter-spacing:-.02em}
 header p{margin:0;color:var(--muted);font-size:14px}
 .legend{display:flex;gap:14px;margin:14px 0 8px;font-size:13px;color:var(--muted)}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.tabs{display:flex;gap:4px;margin:16px 0 4px;padding:4px;background:var(--line);border-radius:12px}
+.tab{flex:1;padding:9px 8px;border-radius:9px;font-size:15px;font-weight:600;color:var(--muted)}
+.tab:hover{background:transparent;color:var(--text)}
+.tab.on{background:var(--surface);color:var(--text);box-shadow:0 1px 2px rgb(0 0 0 / .08)}
 .q{margin:28px 0 0}
 .q h2{font-size:13px;font-weight:600;color:var(--muted);margin:0 0 10px;cursor:pointer;display:flex;gap:8px;align-items:center}
 .q h2 .n{font-variant-numeric:tabular-nums;color:var(--text)}
@@ -62,7 +66,8 @@ svg{display:block}
 <div class="wrap">
   <header>
     <p>🎧 듣기용 답변</p>
-    <h1>__TITLE__</h1>
+    <div class="tabs" id="tabs" role="tablist"></div>
+    <h1 id="title"></h1>
     <p><span id="qcount"></span> · 문장을 누르면 거기서부터 재생돼요</p>
     <div class="legend"><span><i class="dot" style="background:var(--her)"></i>면접관</span><span><i class="dot" style="background:var(--me)"></i>나</span></div>
   </header>
@@ -88,50 +93,76 @@ svg{display:block}
 
 <audio id="au" preload="auto"></audio>
 <script>
-const DATA = __DATA__;
+const DECKS = __DATA__;
 const lab = q => q.no ? `Q${q.no}` : '역질문';
-const turns = [];
-DATA.forEach(q => q.turns.forEach(t => turns.push({...t, q})));
+const who = t => t.speaker === 'interviewer' ? '면접관' : '나';
 
 const $ = id => document.getElementById(id);
 const au = $('au'), list = $('list');
 const SPEEDS = [0.8, 0.9, 1.0, 1.1, 1.25, 1.5];
-const store = { get(k, d){ try{ const v = localStorage.getItem('iv_'+location.pathname+k); return v===null?d:JSON.parse(v) }catch(e){ return d } },
-                set(k, v){ try{ localStorage.setItem('iv_'+location.pathname+k, JSON.stringify(v)) }catch(e){} } };
-let idx = Math.min(store.get('idx', 0), turns.length - 1);
+const store = { get(k, d){ try{ const v = localStorage.getItem('iv_'+k); return v===null?d:JSON.parse(v) }catch(e){ return d } },
+                set(k, v){ try{ localStorage.setItem('iv_'+k, JSON.stringify(v)) }catch(e){} } };
 let speed = store.get('speed', 1.0), practice = store.get('practice', false);
 let playing = false, gapTimer = null;
+let deck, DATA, turns = [], idx = 0;
 
-// 렌더
-turns.forEach((t, i) => {
-  if (!t.q._el) {
-    const sec = document.createElement('section'); sec.className = 'q';
-    sec.innerHTML = `<h2><span class="n">${lab(t.q)}</span>${t.q.title}</h2>`;
-    sec.querySelector('h2').onclick = () => go(i, true);
-    list.appendChild(sec); t.q._el = sec;
-  }
-  const d = document.createElement('div');
-  d.className = 'turn ' + t.speaker;
-  d.innerHTML = `<span class="who">${t.speaker === 'interviewer' ? '면접관' : '나'}</span>`;
-  d.appendChild(document.createTextNode(t.text));
-  d.onclick = () => go(i, true);
-  t.el = d; t.q._el.appendChild(d);
+// 탭
+DECKS.forEach(d => {
+  const b = document.createElement('button');
+  b.className = 'tab'; b.textContent = d.label; b.dataset.key = d.key; b.setAttribute('role', 'tab');
+  b.onclick = () => selectDeck(d.key, true);
+  $('tabs').appendChild(b);
 });
+
+function selectDeck(key, userAction){
+  const next = DECKS.find(d => d.key === key) || DECKS[0];
+  if (deck === next) return;
+  au.pause(); clearTimeout(gapTimer); playing = false; setIcon(); $('hint').textContent = '';
+  deck = next; DATA = deck.questions; turns = [];
+  DATA.forEach(q => q.turns.forEach(t => turns.push({...t, q})));
+  [...$('tabs').children].forEach(b => { const on = b.dataset.key === deck.key; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
+  $('title').textContent = deck.title; document.title = deck.title;
+  $('qcount').textContent = `질문 ${DATA.filter(q => q.no).length}개`;
+  store.set('tab', deck.key);
+  if (userAction) { const u = new URL(location); u.searchParams.set('tab', deck.key); history.replaceState(null, '', u); }
+  render();
+  idx = Math.min(store.get('idx_' + deck.key, 0), turns.length - 1);
+  load(idx, false); au.pause();
+  if (userAction) window.scrollTo({top: 0});
+}
+
+function render(){
+  list.textContent = '';
+  turns.forEach((t, i) => {
+    if (!t.q._el || !list.contains(t.q._el)) {
+      const sec = document.createElement('section'); sec.className = 'q';
+      sec.innerHTML = `<h2><span class="n">${lab(t.q)}</span>${t.q.title}</h2>`;
+      sec.querySelector('h2').onclick = () => go(i, true);
+      list.appendChild(sec); t.q._el = sec;
+    }
+    const d = document.createElement('div');
+    d.className = 'turn ' + t.speaker;
+    d.innerHTML = `<span class="who">${who(t)}</span>`;
+    d.appendChild(document.createTextNode(t.text));
+    d.onclick = () => go(i, true);
+    t.el = d; t.q._el.appendChild(d);
+  });
+}
 
 function mark(scroll){
   turns.forEach((t, i) => t.el.classList.toggle('active', i === idx));
   const t = turns[idx];
-  $('now').innerHTML = `<b>${lab(t.q)}</b> · ${t.q.title} · ${t.speaker === 'interviewer' ? '면접관' : '나'}`;
+  $('now').innerHTML = `<b>${deck.label} ${lab(t.q)}</b> · ${t.q.title} · ${who(t)}`;
   if (scroll) t.el.scrollIntoView({behavior:'smooth', block:'center'});
-  store.set('idx', idx);
+  store.set('idx_' + deck.key, idx);
   if ('mediaSession' in navigator) navigator.mediaSession.metadata = new MediaMetadata({
-    title: `${lab(t.q)}. ${t.q.title}`, artist: t.speaker === 'interviewer' ? '면접관' : '나', album: '면접 시뮬레이션'});
+    title: `${lab(t.q)}. ${t.q.title}`, artist: who(t), album: deck.title});
 }
 function setIcon(){
   $('icon').innerHTML = playing ? '<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
   $('play').setAttribute('aria-label', playing ? '일시정지' : '재생');
 }
-function load(i){ idx = i; au.src = turns[i].audio; au.playbackRate = speed; mark(true); }
+function load(i, scroll = true){ idx = i; au.src = turns[i].audio; au.playbackRate = speed; mark(scroll); }
 function go(i, play){
   clearTimeout(gapTimer); $('hint').textContent = '';
   if (i < 0 || i >= turns.length) { playing = false; setIcon(); return; }
@@ -148,14 +179,14 @@ au.addEventListener('ended', () => {
   const pause = nxt.q !== cur.q ? 1400 : 650;
   gapTimer = setTimeout(() => go(idx + 1, true), pause / speed);
 });
-au.addEventListener('error', () => { playing = false; setIcon(); $('hint').textContent = '오디오를 불러오지 못했어요.'; });
+au.addEventListener('error', () => { if (!au.getAttribute('src')) return; playing = false; setIcon(); $('hint').textContent = '오디오를 불러오지 못했어요.'; });
 au.addEventListener('timeupdate', () => {
   $('prog').style.width = au.duration ? (au.currentTime / au.duration * 100) + '%' : '0';
 });
 $('bar').onclick = e => { if (au.duration) au.currentTime = e.offsetX / e.currentTarget.clientWidth * au.duration; };
 $('play').onclick = () => {
   if (playing) { au.pause(); clearTimeout(gapTimer); playing = false; }
-  else { $('hint').textContent = ''; if (!au.src) load(idx); au.playbackRate = speed; playing = true; au.play().catch(()=>{ playing=false; setIcon(); }); }
+  else { $('hint').textContent = ''; au.playbackRate = speed; playing = true; au.play().catch(()=>{ playing=false; setIcon(); }); }
   setIcon();
 };
 const qStart = dir => {
@@ -176,8 +207,8 @@ if ('mediaSession' in navigator) {
   navigator.mediaSession.setActionHandler('previoustrack', () => $('prevQ').click());
   navigator.mediaSession.setActionHandler('nexttrack', () => $('nextQ').click());
 }
-$("qcount").textContent = `질문 ${DATA.filter(q => q.no).length}개`;
-paintOpts(); load(idx); au.pause();
+paintOpts();
+selectDeck(new URLSearchParams(location.search).get('tab') || store.get('tab', DECKS[0].key), false);
 </script>
 </body>
 </html>
