@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>면접 시뮬레이션 오디오</title>
+<title>카카오뱅크 신사업기획 면접 시뮬레이션</title>
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
@@ -96,8 +96,8 @@ DATA.forEach(q => q.turns.forEach(t => turns.push({...t, q})));
 const $ = id => document.getElementById(id);
 const au = $('au'), list = $('list');
 const SPEEDS = [0.8, 0.9, 1.0, 1.1, 1.25, 1.5];
-const store = { get(k, d){ try{ const v = localStorage.getItem('iv_'+k); return v===null?d:JSON.parse(v) }catch(e){ return d } },
-                set(k, v){ try{ localStorage.setItem('iv_'+k, JSON.stringify(v)) }catch(e){} } };
+const store = { get(k, d){ try{ const v = localStorage.getItem('iv_'+location.pathname+k); return v===null?d:JSON.parse(v) }catch(e){ return d } },
+                set(k, v){ try{ localStorage.setItem('iv_'+location.pathname+k, JSON.stringify(v)) }catch(e){} } };
 let idx = Math.min(store.get('idx', 0), turns.length - 1);
 let speed = store.get('speed', 1.0), practice = store.get('practice', false);
 let playing = false, gapTimer = null;
